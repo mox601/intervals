@@ -10,11 +10,18 @@
  (fn [db]
    (:name db)))
 
+;; form state
 (re-frame/reg-sub
  ::duration
  (fn [db]
    (:duration db)))
 
+(re-frame/reg-sub
+ ::repetitions
+ (fn [db]
+   (:repetitions db)))
+
+;; timer remaining duration
 (re-frame/reg-sub
  ::timer
  (fn [db]

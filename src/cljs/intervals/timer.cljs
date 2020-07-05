@@ -11,36 +11,62 @@
   [timer]
   (timer :duration))
 
+(defn repetitions
+  [timer]
+  (timer :repetitions))
+
 (defn started?
   [timer]
   (= :started (timer :status)))
 
+(defn more-repetitions?
+  [timer]
+   (> (timer :repetitions) 1))
+
 (defn expired?
   [timer]
-  (<= (timer :duration)  0))
+  (and
+   (not (more-repetitions? timer))
+   (<= (timer :duration)  0)))
 
 ;; commands
 (defn init
   []
   {:duration 0
-   :status :stopped})
+   :initial-duration 0
+   :repetitions 1
+   :status :stopped
+   :interval-id nil})
 
 (defn start
-  [timer duration interval-id]
+  [timer duration repetitions interval-id]
   ;;TODO only a stopped/completed timer can be started
-  (assoc timer :duration duration :status :started :interval-id interval-id))
+  (assoc timer
+         :duration duration
+         :initial-duration duration
+         :status :started
+         :repetitions repetitions
+         :interval-id interval-id))
 
 (defn decrement
   [timer]
-  ;;TODO only a >= 0 counter can be decremented
-  (assoc timer :duration (- (timer :duration) 1)))
+  ;;TODO only a >= 0 counter and >= 0 repetitions can be decremented
+  (if (> (timer :duration) 0)
+    (assoc timer :duration (dec (timer :duration)))
+    (if (more-repetitions? timer)
+      (assoc timer
+             :repetitions (dec (timer :repetitions))
+             :duration (timer :initial-duration))
+      timer)))
 
 (defn stop
   [timer]
   ;;TODO only a started timer can be stopped
-  (assoc timer :status :stopped :interval-id nil))
+  (assoc timer
+         :status :stopped
+         :interval-id nil))
 
-;;TODO (throw (js/Error. "only a started timer with 0 duration can be completed"))
+;;TODO? (throw (js/Error. "only a started timer with 0 duration and 0 repetitions can be completed"))
 (defn complete
   [timer]
   (if (and
