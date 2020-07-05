@@ -21,13 +21,13 @@
 
 (defn more-repetitions?
   [timer]
-   (> (timer :repetitions) 1))
+   (> (repetitions timer) 1))
 
 (defn expired?
   [timer]
   (and
    (not (more-repetitions? timer))
-   (<= (timer :duration)  0)))
+   (<= (duration timer)  0)))
 
 ;; commands
 (defn init
