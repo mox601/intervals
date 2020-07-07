@@ -4,9 +4,13 @@
    [intervals.subs :as subs]
    [intervals.events :as events]))
 
-(defn timer []
-  (let [timer (re-frame/subscribe [::subs/timer])]
-    [:div @timer]))
+(defn duration []
+  (let [remaining-duration (re-frame/subscribe [::subs/remaining-duration])]
+    [:div @remaining-duration]))
+
+(defn repetitions []
+  (let [remaining-repetitions (re-frame/subscribe [::subs/remaining-repetitions])]
+    [:div @remaining-repetitions]))
 
 (defn start-button [duration repetitions]
   [:input {:type "button" :value "Start!"
@@ -22,6 +26,7 @@
      (let [name (re-frame/subscribe [::subs/name])]
        [:h1 "Hello from " @name "!"])
 
+     ;;TODO refactor as reusable component
      (let [duration (re-frame/subscribe [::subs/duration])]
        [:div @duration " secs"
         [:input {:type "button" :value "+"
@@ -43,5 +48,6 @@
 
      ;;TODO stop button enabled only if it's started
      [stop-button]
-     [timer]])
+     [duration]
+     [repetitions]])
 

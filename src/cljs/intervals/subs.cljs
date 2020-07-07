@@ -22,8 +22,14 @@
    (:repetitions db)))
 
 ;; timer remaining duration
+;;TODO rename and add a sub for remaining repetitions
 (re-frame/reg-sub
- ::timer
+ ::remaining-duration
  (fn [db]
    (timer/duration (db :timer))))
+
+(re-frame/reg-sub
+ ::remaining-repetitions
+ (fn [db]
+   (timer/repetitions (db :timer))))
 
