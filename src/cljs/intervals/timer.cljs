@@ -55,29 +55,30 @@
   ;;TODO only a stopped/completed timer can be started
   (assoc timer
          :duration duration
+         ;; TODO refactor as on-off
          :initial-duration duration
          :initial-duration-off duration-off
-         :type :on
+         :type :work
          :status :started
          :repetitions repetitions
          :interval-id interval-id))
 
-(defn- on-time?
+(defn- work-time?
   [timer]
-  (= :on (timer :type)))
+  (= :work (timer :type)))
 
 (defn- next-repetition
   [timer]
   (assoc timer
          :repetitions (dec (timer :repetitions))
          :duration (timer :initial-duration)
-         :type :on))
+         :type :work))
 
 (defn- off-time
   [timer]
   (assoc timer
          :duration (timer :initial-duration-off)
-         :type :off))
+         :type :rest))
 
 (defn- dec-duration
   [timer]
@@ -90,7 +91,7 @@
   ;;TODO do we want to rest even when  there's 1 repetition?
   (if (> (timer :duration) 0)
     (dec-duration timer)
-    (if (on-time? timer)
+    (if (work-time? timer)
       (off-time timer)
       (if (more-repetitions? timer)
         (next-repetition timer)

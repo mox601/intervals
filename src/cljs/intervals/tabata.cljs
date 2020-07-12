@@ -3,20 +3,28 @@
 (defn init
   []
   {:duration 5
-   :duration-off 2
+   :duration-rest 2
    :repetitions 1})
 
 (defn duration
   [tabata-form]
   (tabata-form :duration))
 
+(defn duration-rest
+  [tabata-form]
+  (tabata-form :duration-rest))
+
+(defn repetitions
+  [tabata-form]
+  (tabata-form :repetitions))
+
 (defn duration-change
   [tabata-form op]
   (assoc tabata-form :duration (op (:duration tabata-form))))
 
-(defn duration-off-change
+(defn duration-rest-change
   [db op]
-  (assoc db :duration-off (op (:duration-off db))))
+  (assoc db :duration-rest (op (:duration-rest db))))
 
 (defn repetition-change
   [db op]

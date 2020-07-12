@@ -29,35 +29,34 @@
      (do
        (println "timer duration expired")
        (clear-interval (timer/interval-id (db :timer)))
-       (assoc-in db [:timer] (timer/complete (db :timer))))
-     (assoc-in db [:timer] (timer/decrement (db :timer))))))
+       (assoc db :timer (timer/complete (db :timer))))
+     (assoc db :timer (timer/decrement (db :timer))))))
 
 ;;form events
 ;;TODO only positive numbers
-;; wrap behind tabata domain methods
 (re-frame/reg-event-db               
  :duration-change
  (fn [db [_ op]]
   (assoc db :tabata-form (tabata/duration-change (db :tabata-form) op))))
 
 (re-frame/reg-event-db               
- :duration-off-change
+ :duration-rest-change
  (fn [db [_ op]]
-   (tabata/duration-off-change db op)))
+   (assoc db :tabata-form (tabata/duration-rest-change (db :tabata-form) op))))
 
 (re-frame/reg-event-db               
  :repetition-change
  (fn [db [_ op]]
-   (tabata/repetition-change db op)))
+   (assoc db :tabata-form (tabata/repetition-change (db :tabata-form) op))))
 
 ;; timer events
 (re-frame/reg-event-db
  :start-timer
- (fn [db [_ duration duration-off repetitions]]
+ (fn [db [_ duration duration-rest repetitions]]
    (if (timer/started? (db :timer))
      db
      (let [interval-id (set-interval (fn [] (re-frame/dispatch [:second])) 1000)]
-       (assoc-in db [:timer] (timer/start (db :timer) duration duration-off repetitions interval-id))))))
+       (assoc-in db [:timer] (timer/start (db :timer) duration duration-rest repetitions interval-id))))))
 
 (re-frame/reg-event-db
  :stop-timer
@@ -69,14 +68,14 @@
      db)))
 
 ;; event dispatchers (commands from ui)
-;;form commands
+;; form commands
 (defn dispatch-duration-change-event
   [op]
   (re-frame/dispatch [:duration-change op]))
 
-(defn dispatch-duration-off-change-event
+(defn dispatch-duration-rest-change-event
   [op]
-  (re-frame/dispatch [:duration-off-change op]))
+  (re-frame/dispatch [:duration-rest-change op]))
 
 (defn dispatch-repetition-change
   [op]
@@ -84,8 +83,8 @@
 
 ;; timer commands
 (defn dispatch-start-timer
-  [duration duration-off repetitions]
-  (re-frame/dispatch [:start-timer duration duration-off repetitions]))
+  [duration duration-rest repetitions]
+  (re-frame/dispatch [:start-timer duration duration-rest repetitions]))
 
 (defn dispatch-stop-timer
   []

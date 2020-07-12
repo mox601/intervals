@@ -13,9 +13,9 @@
   (let [remaining-repetitions (re-frame/subscribe [::subs/remaining-repetitions])]
     [:div @remaining-repetitions]))
 
-(defn start-button [duration duration-off repetitions]
+(defn start-button [duration duration-rest repetitions]
   [:input {:type "button" :value "Start!"
-           :on-click #(events/dispatch-start-timer duration duration-off repetitions)}])
+           :on-click #(events/dispatch-start-timer duration duration-rest repetitions)}])
 
 ;;TODO could receive interval-id to avoid reading id from db
 (defn stop-button []
@@ -29,18 +29,18 @@
 
      ;;TODO refactor as 1 reusable component
      (let [duration (re-frame/subscribe [::subs/duration])]
-       [:div @duration " secs on"
+       [:div @duration " secs work"
         [:input {:type "button" :value "+"
                  :on-click #(events/dispatch-duration-change-event inc)}]
         [:input {:type "button" :value "-"
                  :on-click #(events/dispatch-duration-change-event dec)}]])
 
-     (let [duration (re-frame/subscribe [::subs/duration-off])]
-       [:div @duration " secs off"
+     (let [duration (re-frame/subscribe [::subs/duration-rest])]
+       [:div @duration " secs rest"
         [:input {:type "button" :value "+"
-                 :on-click #(events/dispatch-duration-off-change-event inc)}]
+                 :on-click #(events/dispatch-duration-rest-change-event inc)}]
         [:input {:type "button" :value "-"
-                 :on-click #(events/dispatch-duration-off-change-event dec)}]])
+                 :on-click #(events/dispatch-duration-rest-change-event dec)}]])
      
      (let [repetitions (re-frame/subscribe [::subs/repetitions])]
        [:div @repetitions " repetitions"
@@ -51,7 +51,7 @@
      
      ;;TODO start button enabled only if it's not started
      (let [duration    (re-frame/subscribe [::subs/duration])
-           duration-off (re-frame/subscribe [::subs/duration-off])
+           duration-off (re-frame/subscribe [::subs/duration-rest])
            repetitions (re-frame/subscribe [::subs/repetitions])]
        [start-button @duration @duration-off @repetitions])
 

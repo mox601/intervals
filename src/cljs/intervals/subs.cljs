@@ -5,31 +5,29 @@
    [intervals.tabata :as tabata]))
 
 ;; subscriptions
-;; allow data to be observed from views
+;; allows views to observe data
 (re-frame/reg-sub
  ::name
  (fn [db]
    (:name db)))
 
 ;; form state
-;; TODO on
 (re-frame/reg-sub
  ::duration
  (fn [db]
    (tabata/duration (get db :tabata-form))))
 
 (re-frame/reg-sub
- ::duration-off
+ ::duration-rest
  (fn [db]
-   (:duration-off db)))
+   (tabata/duration-rest (get db :tabata-form))))
 
 (re-frame/reg-sub
  ::repetitions
  (fn [db]
-   (:repetitions db)))
+   (tabata/repetitions (get db :tabata-form))))
 
 ;; timer remaining duration
-;;TODO rename and add a sub for remaining repetitions
 (re-frame/reg-sub
  ::remaining-duration
  (fn [db]
