@@ -1,7 +1,8 @@
 (ns intervals.subs
   (:require
    [re-frame.core :as re-frame]
-   [intervals.timer :as timer]))
+   [intervals.timer :as timer]
+   [intervals.tabata :as tabata]))
 
 ;; subscriptions
 ;; allow data to be observed from views
@@ -11,10 +12,16 @@
    (:name db)))
 
 ;; form state
+;; TODO on
 (re-frame/reg-sub
  ::duration
  (fn [db]
-   (:duration db)))
+   (tabata/duration (get db :tabata-form))))
+
+(re-frame/reg-sub
+ ::duration-off
+ (fn [db]
+   (:duration-off db)))
 
 (re-frame/reg-sub
  ::repetitions

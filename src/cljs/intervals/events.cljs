@@ -2,7 +2,8 @@
   (:require
    [re-frame.core :as re-frame]
    [intervals.db :as db]
-   [intervals.timer :as timer]))
+   [intervals.timer :as timer]
+   [intervals.tabata :as tabata]))
 
 (re-frame/reg-event-db
  ::initialize-db
@@ -14,6 +15,7 @@
   [interval-id]
   (js/clearInterval interval-id))
 
+;; TODO use https://github.com/daveyarwood/chronoid
 (defn set-interval
   [f millis]
   ;;TODO get and use also params
@@ -31,24 +33,31 @@
      (assoc-in db [:timer] (timer/decrement (db :timer))))))
 
 ;;form events
+;;TODO only positive numbers
+;; wrap behind tabata domain methods
 (re-frame/reg-event-db               
  :duration-change
  (fn [db [_ op]]
-   (assoc db :duration (op (:duration db)))))
+  (assoc db :tabata-form (tabata/duration-change (db :tabata-form) op))))
+
+(re-frame/reg-event-db               
+ :duration-off-change
+ (fn [db [_ op]]
+   (tabata/duration-off-change db op)))
 
 (re-frame/reg-event-db               
  :repetition-change
  (fn [db [_ op]]
-   (assoc db :repetitions (op (:repetitions db)))))
+   (tabata/repetition-change db op)))
 
 ;; timer events
 (re-frame/reg-event-db
  :start-timer
- (fn [db [_ duration repetitions]]
+ (fn [db [_ duration duration-off repetitions]]
    (if (timer/started? (db :timer))
      db
      (let [interval-id (set-interval (fn [] (re-frame/dispatch [:second])) 1000)]
-       (assoc-in db [:timer] (timer/start (db :timer) duration repetitions interval-id))))))
+       (assoc-in db [:timer] (timer/start (db :timer) duration duration-off repetitions interval-id))))))
 
 (re-frame/reg-event-db
  :stop-timer
@@ -56,7 +65,7 @@
    (if (timer/started? (db :timer))
      (do
        (clear-interval (timer/interval-id (db :timer)))
-       (assoc-in db [:timer] (timer/stop (db :timer))))
+       (assoc db :timer (timer/stop (db :timer))))
      db)))
 
 ;; event dispatchers (commands from ui)
@@ -65,14 +74,18 @@
   [op]
   (re-frame/dispatch [:duration-change op]))
 
+(defn dispatch-duration-off-change-event
+  [op]
+  (re-frame/dispatch [:duration-off-change op]))
+
 (defn dispatch-repetition-change
   [op]
   (re-frame/dispatch [:repetition-change op]))
 
 ;; timer commands
 (defn dispatch-start-timer
-  [duration repetitions]
-  (re-frame/dispatch [:start-timer duration repetitions]))
+  [duration duration-off repetitions]
+  (re-frame/dispatch [:start-timer duration duration-off repetitions]))
 
 (defn dispatch-stop-timer
   []

@@ -29,35 +29,72 @@
    (not (more-repetitions? timer))
    (<= (duration timer)  0)))
 
+;; TODO
+;; from https://www.tabatatimer.com/
+;; refactor model:
+;; prepare
+;; (work + rest) x cycles
+;; tabatas (= cycles repetitions)
+;; commands: pause-resume-stop
+
 ;; commands
 (defn init
   []
-  {:duration 0
+  {
+   :duration 0
+   ;;TODO keep track if duration is on or off
    :initial-duration 0
+   :initial-duration-off 0
+   :type nil
    :repetitions 1
    :status :stopped
    :interval-id nil})
 
 (defn start
-  [timer duration repetitions interval-id]
+  [timer duration duration-off repetitions interval-id]
   ;;TODO only a stopped/completed timer can be started
   (assoc timer
          :duration duration
          :initial-duration duration
+         :initial-duration-off duration-off
+         :type :on
          :status :started
          :repetitions repetitions
          :interval-id interval-id))
 
+(defn- on-time?
+  [timer]
+  (= :on (timer :type)))
+
+(defn- next-repetition
+  [timer]
+  (assoc timer
+         :repetitions (dec (timer :repetitions))
+         :duration (timer :initial-duration)
+         :type :on))
+
+(defn- off-time
+  [timer]
+  (assoc timer
+         :duration (timer :initial-duration-off)
+         :type :off))
+
+(defn- dec-duration
+  [timer]
+  (assoc timer
+         :duration (dec (timer :duration))))
+
 (defn decrement
   [timer]
   ;;TODO only a >= 0 counter and >= 0 repetitions can be decremented
+  ;;TODO do we want to rest even when  there's 1 repetition?
   (if (> (timer :duration) 0)
-    (assoc timer :duration (dec (timer :duration)))
-    (if (more-repetitions? timer)
-      (assoc timer
-             :repetitions (dec (timer :repetitions))
-             :duration (timer :initial-duration))
-      timer)))
+    (dec-duration timer)
+    (if (on-time? timer)
+      (off-time timer)
+      (if (more-repetitions? timer)
+        (next-repetition timer)
+        timer))))
 
 (defn stop
   [timer]
