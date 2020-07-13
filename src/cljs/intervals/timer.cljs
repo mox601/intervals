@@ -19,6 +19,10 @@
   [timer]
   (= :started (timer :status)))
 
+(defn prepare?
+  [timer]
+  (= :prepare (timer :type)))
+
 (defn more-repetitions?
   [timer]
    (> (repetitions timer) 1))
@@ -27,7 +31,8 @@
   [timer]
   (and
    (not (more-repetitions? timer))
-   (<= (duration timer)  0)))
+   (<= (duration timer)  0)
+   (not (prepare? timer))))
 
 ;; TODO
 ;; from https://www.tabatatimer.com/
@@ -54,11 +59,11 @@
   [timer duration duration-off repetitions interval-id]
   ;;TODO only a stopped/completed timer can be started
   (assoc timer
-         :duration duration
+         :duration 2
          ;; TODO refactor as on-off
          :initial-duration duration
          :initial-duration-off duration-off
-         :type :work
+         :type :prepare
          :status :started
          :repetitions repetitions
          :interval-id interval-id))
@@ -66,6 +71,10 @@
 (defn- work-time?
   [timer]
   (= :work (timer :type)))
+
+(defn- prepare-time?
+  [timer]
+  (= :prepare (timer :type)))
 
 (defn- next-repetition
   [timer]
@@ -80,6 +89,12 @@
          :duration (timer :initial-duration-off)
          :type :rest))
 
+(defn- work-time
+  [timer]
+  (assoc timer
+         :duration (timer :initial-duration)
+         :type :work))
+
 (defn- dec-duration
   [timer]
   (assoc timer
@@ -88,14 +103,16 @@
 (defn decrement
   [timer]
   ;;TODO only a >= 0 counter and >= 0 repetitions can be decremented
-  ;;TODO do we want to rest even when  there's 1 repetition?
+  ;;TODO do we want to rest even when there's 1 repetition?
   (if (> (timer :duration) 0)
     (dec-duration timer)
-    (if (work-time? timer)
-      (off-time timer)
-      (if (more-repetitions? timer)
-        (next-repetition timer)
-        timer))))
+    (if (prepare-time? timer)
+      (work-time timer)
+      (if (work-time? timer)
+        (off-time timer)
+        (if (more-repetitions? timer)
+          (next-repetition timer)
+          timer)))))
 
 (defn stop
   [timer]

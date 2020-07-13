@@ -21,6 +21,7 @@
   ;;TODO get and use also params
   (js/setInterval f millis))
 
+;; ~ service methods
 ;; timer events
 (re-frame/reg-event-db
  :second
