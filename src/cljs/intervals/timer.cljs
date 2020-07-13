@@ -19,7 +19,11 @@
   [timer]
   (= :started (timer :status)))
 
-(defn prepare?
+(defn- work-time?
+  [timer]
+  (= :work (timer :type)))
+
+(defn- prepare-time?
   [timer]
   (= :prepare (timer :type)))
 
@@ -32,7 +36,7 @@
   (and
    (not (more-repetitions? timer))
    (<= (duration timer)  0)
-   (not (prepare? timer))))
+   (not (prepare-time? timer))))
 
 ;; TODO
 ;; from https://www.tabatatimer.com/
@@ -51,8 +55,8 @@
    :initial-duration 0
    :initial-duration-off 0
    :type nil
-   :repetitions 1
    :status :stopped
+   :repetitions 1
    :interval-id nil})
 
 (defn start
@@ -60,21 +64,13 @@
   ;;TODO only a stopped/completed timer can be started
   (assoc timer
          :duration 2
-         ;; TODO refactor as on-off
+         ;; TODO refactor as work-rest
          :initial-duration duration
          :initial-duration-off duration-off
          :type :prepare
          :status :started
          :repetitions repetitions
          :interval-id interval-id))
-
-(defn- work-time?
-  [timer]
-  (= :work (timer :type)))
-
-(defn- prepare-time?
-  [timer]
-  (= :prepare (timer :type)))
 
 (defn- next-repetition
   [timer]
