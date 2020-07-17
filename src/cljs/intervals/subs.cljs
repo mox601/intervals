@@ -15,17 +15,17 @@
 (re-frame/reg-sub
  ::duration
  (fn [db]
-   (tabata/duration (get db :tabata-form))))
+   (tabata/duration (db :tabata-form))))
 
 (re-frame/reg-sub
  ::duration-rest
  (fn [db]
-   (tabata/duration-rest (get db :tabata-form))))
+   (tabata/duration-rest (db :tabata-form))))
 
 (re-frame/reg-sub
  ::repetitions
  (fn [db]
-   (tabata/repetitions (get db :tabata-form))))
+   (tabata/repetitions (db :tabata-form))))
 
 ;; timer remaining duration
 (re-frame/reg-sub
