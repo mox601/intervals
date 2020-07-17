@@ -4,39 +4,39 @@
 
 ;; queries
 (defn interval-id
-  [timer]
-  (timer :interval-id))
+  [m]
+  (m :interval-id))
 
 (defn duration
-  [timer]
-  (timer :duration))
+  [m]
+  (m :duration))
 
 (defn repetitions
-  [timer]
-  (timer :repetitions))
+  [m]
+  (m :repetitions))
 
 (defn started?
-  [timer]
-  (= :started (timer :status)))
+  [m]
+  (= :started (m :status)))
 
 (defn- work-time?
-  [timer]
-  (= :work (timer :type)))
+  [m]
+  (= :work (m :type)))
 
 (defn- prepare-time?
-  [timer]
-  (= :prepare (timer :type)))
+  [m]
+  (= :prepare (m :type)))
 
 (defn more-repetitions?
-  [timer]
-   (> (repetitions timer) 1))
+  [m]
+   (> (repetitions m) 1))
 
 (defn expired?
-  [timer]
+  [m]
   (and
-   (not (more-repetitions? timer))
-   (<= (duration timer)  0)
-   (not (prepare-time? timer))))
+   (not (more-repetitions? m))
+   (<= (duration m)  0)
+   (not (prepare-time? m))))
 
 ;; TODO
 ;; from https://www.tabatatimer.com/
@@ -46,6 +46,7 @@
 ;; tabatas (= cycles repetitions)
 ;; commands: pause-resume-stop
 
+;;TODO repetitions can't be less than 1
 ;; commands
 (defn init
   []
@@ -59,70 +60,78 @@
    :repetitions 1
    :interval-id nil})
 
+;; destructure an input map instead of getting an array
+;;TODO spec the start-command
 (defn start
-  [timer duration duration-off repetitions interval-id]
+  [m start-command]
   ;;TODO only a stopped/completed timer can be started
-  (assoc timer
-         :duration 2
-         ;; TODO refactor as work-rest
-         :initial-duration duration
-         :initial-duration-off duration-off
-         :type :prepare
-         :status :started
-         :repetitions repetitions
-         :interval-id interval-id))
+  (let [{duration :initial-duration
+         initial-duration-off :initial-duration-off
+         repetitions :repetitions
+         interval-id :interval-id} start-command]
+    (assoc m
+           :duration 2
+           ;; TODO refactor as work-rest
+           :initial-duration duration
+           :initial-duration-off initial-duration-off
+           :type :prepare
+           :status :started
+           :repetitions repetitions
+           :interval-id interval-id)))
 
 (defn- next-repetition
-  [timer]
-  (assoc timer
-         :repetitions (dec (timer :repetitions))
-         :duration (timer :initial-duration)
+  [m]
+  (assoc m
+         :repetitions (dec (m :repetitions))
+         :duration (m :initial-duration)
          :type :work))
 
 (defn- off-time
-  [timer]
-  (assoc timer
-         :duration (timer :initial-duration-off)
+  [m]
+  (assoc m
+         :duration (m :initial-duration-off)
          :type :rest))
 
 (defn- work-time
-  [timer]
-  (assoc timer
-         :duration (timer :initial-duration)
+  [m]
+  (assoc m
+         :duration (m :initial-duration)
          :type :work))
 
 (defn- dec-duration
-  [timer]
-  (assoc timer
-         :duration (dec (timer :duration))))
+  [m]
+  (assoc m
+         :duration (dec (m :duration))))
 
 (defn decrement
-  [timer]
+  [m]
   ;;TODO only a >= 0 counter and >= 0 repetitions can be decremented
   ;;TODO do we want to rest even when there's 1 repetition?
-  (if (> (timer :duration) 0)
-    (dec-duration timer)
-    (if (prepare-time? timer)
-      (work-time timer)
-      (if (work-time? timer)
-        (off-time timer)
-        (if (more-repetitions? timer)
-          (next-repetition timer)
-          timer)))))
+  (if (> (m :duration) 0)
+    (dec-duration m)
+    (if (prepare-time? m)
+      (work-time m)
+      (if (work-time? m)
+        (off-time m)
+        (if (more-repetitions? m)
+          (next-repetition m)
+          m)))))
 
 (defn stop
-  [timer]
+  [m]
   ;;TODO only a started timer can be stopped
-  (assoc timer
+  (assoc m
          :status :stopped
          :interval-id nil))
 
 ;;TODO? (throw (js/Error. "only a started timer with 0 duration and 0 repetitions can be completed"))
 (defn complete
-  [timer]
+  [m]
   (if (and
-       (started? timer)
-       (expired? timer))
-    (assoc timer :status :completed :interval-id nil)
-    timer))
+       (started? m)
+       (expired? m))
+    (assoc m
+           :status :completed
+           :interval-id nil)
+    m))
 

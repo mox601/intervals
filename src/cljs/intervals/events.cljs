@@ -18,7 +18,7 @@
 ;; TODO use https://github.com/daveyarwood/chronoid
 (defn set-interval
   [f millis]
-  ;;TODO get and use also params
+  ;;TODO get and use also other params
   (js/setInterval f millis))
 
 ;; ~ service methods
@@ -34,7 +34,6 @@
      (assoc db :timer (timer/decrement (db :timer))))))
 
 ;;form events
-;;TODO only positive numbers
 (re-frame/reg-event-db               
  :duration-change
  (fn [db [_ op]]
@@ -57,7 +56,11 @@
    (if (timer/started? (db :timer))
      db
      (let [interval-id (set-interval (fn [] (re-frame/dispatch [:second])) 1000)]
-       (assoc-in db [:timer] (timer/start (db :timer) duration duration-rest repetitions interval-id))))))
+       (assoc db :timer (timer/start (db :timer)
+                                          {:initial-duration duration
+                                           :initial-duration-off duration-rest
+                                           :repetitions repetitions
+                                           :interval-id interval-id}))))))
 
 (re-frame/reg-event-db
  :stop-timer

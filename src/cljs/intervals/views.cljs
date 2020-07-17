@@ -51,9 +51,9 @@
      
      ;;TODO start button enabled only if it's not started
      (let [duration    (re-frame/subscribe [::subs/duration])
-           duration-off (re-frame/subscribe [::subs/duration-rest])
+           duration-rest (re-frame/subscribe [::subs/duration-rest])
            repetitions (re-frame/subscribe [::subs/repetitions])]
-       [start-button @duration @duration-off @repetitions])
+       [start-button @duration @duration-rest @repetitions])
 
      ;;TODO stop button enabled only if it's started
      [stop-button]

@@ -2,31 +2,33 @@
 
 (defn init
   []
-  {:duration 5
+  {:duration 3
    :duration-rest 2
    :repetitions 1})
 
 (defn duration
-  [tabata-form]
-  (tabata-form :duration))
+  [m]
+  (m :duration))
 
 (defn duration-rest
-  [tabata-form]
-  (tabata-form :duration-rest))
+  [m]
+  (m :duration-rest))
 
 (defn repetitions
-  [tabata-form]
-  (tabata-form :repetitions))
+  [m]
+  (m :repetitions))
 
+;;TODO can't decrease to a number lower than 1
 (defn duration-change
-  [tabata-form op]
-  (assoc tabata-form :duration (op (:duration tabata-form))))
+  [m op]
+  (assoc m :duration (op (:duration m))))
 
+;;TODO can't decrease to a number lower than 1
 (defn duration-rest-change
-  [db op]
-  (assoc db :duration-rest (op (:duration-rest db))))
+  [m op]
+  (assoc m :duration-rest (op (:duration-rest m))))
 
 (defn repetition-change
-  [db op]
-  (assoc db :repetitions (op (:repetitions db))))
+  [m op]
+  (assoc m :repetitions (op (:repetitions m))))
 
