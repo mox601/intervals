@@ -50,17 +50,33 @@
    (assoc db :tabata-form (tabata/repetition-change (db :tabata-form) op))))
 
 ;; timer events
+;; start (or resume)
+;; TODO split start and resume
 (re-frame/reg-event-db
  :start-timer
  (fn [db [_ duration duration-rest repetitions]]
    (if (timer/started? (db :timer))
      db
-     (let [interval-id (set-interval (fn [] (re-frame/dispatch [:second])) 1000)]
-       (assoc db :timer (timer/start (db :timer)
-                                          {:initial-duration duration
-                                           :initial-duration-off duration-rest
-                                           :repetitions repetitions
-                                           :interval-id interval-id}))))))
+     (if (timer/paused? (db :timer))
+       (let [interval-id (set-interval (fn [] (re-frame/dispatch [:second])) 1000)]
+         (assoc db :timer (timer/resume (db :timer) interval-id)))
+       (let [interval-id (set-interval (fn [] (re-frame/dispatch [:second])) 1000)]
+         (assoc db :timer (timer/start (db :timer)
+                                       {:initial-duration duration
+                                        :initial-duration-off duration-rest
+                                        :repetitions repetitions
+                                        :interval-id interval-id})))))))
+
+
+(re-frame/reg-event-db
+ :resume-timer
+ (fn [db [_]]
+   (if (timer/started? (db :timer))
+     db
+     (if (timer/paused? (db :timer))
+       (let [interval-id (set-interval (fn [] (re-frame/dispatch [:second])) 1000)]
+         (assoc db :timer (timer/resume (db :timer) interval-id)))
+       db))))
 
 (re-frame/reg-event-db
  :stop-timer
@@ -69,6 +85,15 @@
      (do
        (clear-interval (timer/interval-id (db :timer)))
        (assoc db :timer (timer/stop (db :timer))))
+     db)))
+
+(re-frame/reg-event-db
+ :pause-timer
+ (fn [db [_]]
+   (if (timer/started? (db :timer))
+     (do
+       (clear-interval (timer/interval-id (db :timer)))
+       (assoc db :timer (timer/pause (db :timer))))
      db)))
 
 ;; event dispatchers (commands from ui)
@@ -93,4 +118,12 @@
 (defn dispatch-stop-timer
   []
   (re-frame/dispatch [:stop-timer]))
+
+(defn dispatch-pause-timer
+  []
+  (re-frame/dispatch [:pause-timer]))
+
+(defn dispatch-resume-timer
+  []
+  (re-frame/dispatch [:resume-timer]))
 

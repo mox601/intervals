@@ -19,6 +19,10 @@
   [m]
   (= :started (m :status)))
 
+(defn paused?
+  [m]
+  (= :paused (m :status)))
+
 (defn- work-time?
   [m]
   (= :work (m :type)))
@@ -123,6 +127,19 @@
   (assoc m
          :status :stopped
          :interval-id nil))
+
+(defn pause
+  [m]
+  ;;TODO only a started timer can be stopped
+  (assoc m
+         :status :paused
+         :interval-id nil))
+
+(defn resume
+  [m interval-id]
+  (assoc m
+         :status :started
+         :interval-id interval-id))
 
 ;;TODO? (throw (js/Error. "only a started timer with 0 duration and 0 repetitions can be completed"))
 (defn complete

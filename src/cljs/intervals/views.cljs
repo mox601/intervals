@@ -17,10 +17,18 @@
   [:input {:type "button" :value "Start!"
            :on-click #(events/dispatch-start-timer duration duration-rest repetitions)}])
 
+(defn resume-button []
+  [:input {:type "button" :value "Resume!"
+           :on-click #(events/dispatch-resume-timer)}])
+
 ;;TODO could receive interval-id to avoid reading id from db
 (defn stop-button []
   [:input {:type "button" :value "Stop!"
            :on-click #(events/dispatch-stop-timer)}])
+
+(defn pause-button []
+  [:input {:type "button" :value "Pause!"
+           :on-click #(events/dispatch-pause-timer)}])
 
 (defn main-panel []
     [:div
@@ -57,6 +65,8 @@
 
      ;;TODO stop button enabled only if it's started
      [stop-button]
+     [pause-button]
+     [resume-button]
      [duration]
      [repetitions]])
 
