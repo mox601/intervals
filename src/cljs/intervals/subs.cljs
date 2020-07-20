@@ -38,3 +38,13 @@
  (fn [db]
    (timer/repetitions (db :timer))))
 
+(re-frame/reg-sub
+ ::started
+ (fn [db]
+   (timer/started? (db :timer))))
+
+(re-frame/reg-sub
+ ::paused
+ (fn [db]
+   (timer/paused? (db :timer))))
+

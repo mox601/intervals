@@ -4,6 +4,13 @@
    [intervals.subs :as subs]
    [intervals.events :as events]))
 
+
+(defn status []
+  (let [started (re-frame/subscribe [::subs/started])]
+    (if @started
+      [:div "started"]
+      [:div "nothing"])))
+    
 (defn duration []
   (let [remaining-duration (re-frame/subscribe [::subs/remaining-duration])]
     [:div @remaining-duration]))
@@ -17,18 +24,21 @@
   [:input {:type "button" :value "Start!"
            :on-click #(events/dispatch-start-timer duration duration-rest repetitions)}])
 
-(defn resume-button []
+(defn resume-button [disabled]
   [:input {:type "button" :value "Resume!"
-           :on-click #(events/dispatch-resume-timer)}])
+           :on-click #(events/dispatch-resume-timer)
+           :disabled disabled}])
 
 ;;TODO could receive interval-id to avoid reading id from db
-(defn stop-button []
+(defn stop-button [disabled]
   [:input {:type "button" :value "Stop!"
-           :on-click #(events/dispatch-stop-timer)}])
+           :on-click #(events/dispatch-stop-timer)
+           :disabled disabled}])
 
-(defn pause-button []
+(defn pause-button [disabled]
   [:input {:type "button" :value "Pause!"
-           :on-click #(events/dispatch-pause-timer)}])
+           :on-click #(events/dispatch-pause-timer)
+           :disabled disabled}])
 
 (defn main-panel []
     [:div
@@ -58,15 +68,21 @@
                  :on-click #(events/dispatch-repetition-change dec)}]])
      
      ;;TODO start button enabled only if it's not started
-     (let [duration    (re-frame/subscribe [::subs/duration])
+     (let [duration (re-frame/subscribe [::subs/duration])
            duration-rest (re-frame/subscribe [::subs/duration-rest])
            repetitions (re-frame/subscribe [::subs/repetitions])]
        [start-button @duration @duration-rest @repetitions])
 
-     ;;TODO stop button enabled only if it's started
-     [stop-button]
-     [pause-button]
-     [resume-button]
+     ;; stop and pause buttons enabled only if it's started
+     (let [disabled (not @(re-frame/subscribe [::subs/started]))]
+       [:span
+        [stop-button disabled]
+        [pause-button disabled]])
+     
+     (let [disabled (not @(re-frame/subscribe [::subs/paused]))]
+       [resume-button disabled])
+     
+     [status]
      [duration]
      [repetitions]])
 
