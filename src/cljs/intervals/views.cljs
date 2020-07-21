@@ -33,6 +33,8 @@
            :on-click #(events/dispatch-pause-timer)
            :disabled disabled}])
 
+;; input
+;;TODO refactor as 1 reusable component
 (defn work-duration
   []
   ;;duration work
@@ -46,12 +48,12 @@
 (defn rest-duration
   []
   ;;duration rest
-     (let [duration (re-frame/subscribe [::subs/duration-rest])]
-       [:div @duration " secs rest"
-        [:input {:type "button" :value "+"
-                 :on-click #(events/dispatch-duration-rest-change-event inc)}]
-        [:input {:type "button" :value "-"
-                 :on-click #(events/dispatch-duration-rest-change-event dec)}]]))
+  (let [duration (re-frame/subscribe [::subs/duration-rest])]
+    [:div @duration " secs rest"
+     [:input {:type "button" :value "+"
+              :on-click #(events/dispatch-duration-rest-change-event inc)}]
+     [:input {:type "button" :value "-"
+              :on-click #(events/dispatch-duration-rest-change-event dec)}]]))
 
 (defn repetitions-input
   []
@@ -63,20 +65,21 @@
      [:input {:type "button" :value "-"
               :on-click #(events/dispatch-repetition-change dec)}]]))
 
+(defn tabata-input
+  []
+  [:div
+   [work-duration]
+   [rest-duration]
+   [repetitions-input]])
+
 (defn main-panel []
     [:div
      (let [name (re-frame/subscribe [::subs/name])]
        [:h1 "Hello from " @name "!"])
 
-     (let [show-form  @(re-frame/subscribe [::subs/stopped-or-completed])]
-       (if show-form
-         [:div
-          ;;TODO refactor as 1 reusable component
-          [work-duration]
-          [rest-duration]
-          [repetitions-input]]
-         [:div "no form"]))
-     
+     (let [stopped-or-completed  @(re-frame/subscribe [::subs/stopped-or-completed])]
+       (when stopped-or-completed
+         [tabata-input]))
      
      ;;TODO start button enabled only if it's not started
      (let [duration (re-frame/subscribe [::subs/duration])
@@ -92,7 +95,8 @@
      
      (let [disabled (not @(re-frame/subscribe [::subs/paused]))]
        [resume-button disabled])
-     
+
+     ;; TODO only show when started or paused
      [duration]
      [repetitions]])
 
