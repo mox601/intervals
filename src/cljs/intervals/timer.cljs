@@ -23,6 +23,12 @@
   [m]
   (= :paused (m :status)))
 
+(defn stopped-or-completed?
+  [m]
+  (or
+   (= :stopped  (m :status))
+   (= :completed (m :status))))
+
 (defn- work-time?
   [m]
   (= :work (m :type)))

@@ -48,3 +48,10 @@
  (fn [db]
    (timer/paused? (db :timer))))
 
+
+(re-frame/reg-sub
+ ::stopped-or-completed
+ (fn [db]
+   (timer/stopped-or-completed? (db :timer))))
+
+

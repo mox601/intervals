@@ -4,13 +4,6 @@
    [intervals.subs :as subs]
    [intervals.events :as events]))
 
-
-(defn status []
-  (let [started (re-frame/subscribe [::subs/started])]
-    (if @started
-      [:div "started"]
-      [:div "nothing"])))
-    
 (defn duration []
   (let [remaining-duration (re-frame/subscribe [::subs/remaining-duration])]
     [:div @remaining-duration]))
@@ -40,32 +33,50 @@
            :on-click #(events/dispatch-pause-timer)
            :disabled disabled}])
 
-(defn main-panel []
-    [:div
-     (let [name (re-frame/subscribe [::subs/name])]
-       [:h1 "Hello from " @name "!"])
+(defn work-duration
+  []
+  ;;duration work
+  (let [duration (re-frame/subscribe [::subs/duration])]
+    [:div @duration " secs work"
+     [:input {:type "button" :value "+"
+              :on-click #(events/dispatch-duration-change-event inc)}]
+     [:input {:type "button" :value "-"
+              :on-click #(events/dispatch-duration-change-event dec)}]]))
 
-     ;;TODO refactor as 1 reusable component
-     (let [duration (re-frame/subscribe [::subs/duration])]
-       [:div @duration " secs work"
-        [:input {:type "button" :value "+"
-                 :on-click #(events/dispatch-duration-change-event inc)}]
-        [:input {:type "button" :value "-"
-                 :on-click #(events/dispatch-duration-change-event dec)}]])
-
+(defn rest-duration
+  []
+  ;;duration rest
      (let [duration (re-frame/subscribe [::subs/duration-rest])]
        [:div @duration " secs rest"
         [:input {:type "button" :value "+"
                  :on-click #(events/dispatch-duration-rest-change-event inc)}]
         [:input {:type "button" :value "-"
-                 :on-click #(events/dispatch-duration-rest-change-event dec)}]])
+                 :on-click #(events/dispatch-duration-rest-change-event dec)}]]))
+
+(defn repetitions-input
+  []
+  ;;repetitions
+  (let [repetitions (re-frame/subscribe [::subs/repetitions])]
+    [:div @repetitions " repetitions"
+     [:input {:type "button" :value "+"
+              :on-click #(events/dispatch-repetition-change inc)}]
+     [:input {:type "button" :value "-"
+              :on-click #(events/dispatch-repetition-change dec)}]]))
+
+(defn main-panel []
+    [:div
+     (let [name (re-frame/subscribe [::subs/name])]
+       [:h1 "Hello from " @name "!"])
+
+     (let [show-form  @(re-frame/subscribe [::subs/stopped-or-completed])]
+       (if show-form
+         [:div
+          ;;TODO refactor as 1 reusable component
+          [work-duration]
+          [rest-duration]
+          [repetitions-input]]
+         [:div "no form"]))
      
-     (let [repetitions (re-frame/subscribe [::subs/repetitions])]
-       [:div @repetitions " repetitions"
-        [:input {:type "button" :value "+"
-                 :on-click #(events/dispatch-repetition-change inc)}]
-        [:input {:type "button" :value "-"
-                 :on-click #(events/dispatch-repetition-change dec)}]])
      
      ;;TODO start button enabled only if it's not started
      (let [duration (re-frame/subscribe [::subs/duration])
@@ -82,7 +93,6 @@
      (let [disabled (not @(re-frame/subscribe [::subs/paused]))]
        [resume-button disabled])
      
-     [status]
      [duration]
      [repetitions]])
 
