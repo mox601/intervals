@@ -34,7 +34,7 @@
            :disabled disabled}])
 
 ;; input
-;;TODO refactor as 1 reusable component
+;;TODO refactor as 1 reusable component?
 (defn work-duration
   []
   ;;duration work
@@ -77,6 +77,7 @@
      (let [name (re-frame/subscribe [::subs/name])]
        [:h1 "Hello from " @name "!"])
 
+     ;; only show input when stopped or completed
      (let [stopped-or-completed  @(re-frame/subscribe [::subs/stopped-or-completed])]
        (when stopped-or-completed
          [tabata-input]))
