@@ -1,12 +1,24 @@
 (ns intervals.views
   (:require
+   ;;TODO use cuerdas?
+   [goog.string :as gstring]
    [re-frame.core :as re-frame]
    [intervals.subs :as subs]
    [intervals.events :as events]))
 
+(defn secs->str
+  [i]
+  (if (>= i 60)
+    (str (gstring/format "%02d" (quot i 60))
+         ":"
+         (gstring/format "%02d" (mod i 60)))
+    (str "00"
+         ":"
+         (gstring/format "%02d" i))))
+
 (defn duration []
   (let [remaining-duration (re-frame/subscribe [::subs/remaining-duration])]
-    [:div @remaining-duration]))
+    [:div (secs->str @remaining-duration)]))
 
 ;; TODO merge in 1 component?
 (defn repetitions []
@@ -39,17 +51,18 @@
   []
   ;;duration work
   (let [duration (re-frame/subscribe [::subs/duration])]
-    [:div @duration " secs work"
+    [:div (secs->str @duration) " work"
      [:input {:type "button" :value "+"
               :on-click #(events/dispatch-duration-change-event inc)}]
      [:input {:type "button" :value "-"
               :on-click #(events/dispatch-duration-change-event dec)}]]))
 
+
 (defn rest-duration
   []
   ;;duration rest
   (let [duration (re-frame/subscribe [::subs/duration-rest])]
-    [:div @duration " secs rest"
+    [:div (secs->str @duration) " rest"
      [:input {:type "button" :value "+"
               :on-click #(events/dispatch-duration-rest-change-event inc)}]
      [:input {:type "button" :value "-"
@@ -112,7 +125,7 @@
        ;;TODO selecting a radio changes a db state
        [:input {:class "mr2" :type "radio" :name "v"
                 :id :prepare :value "prepare"
-                :on-change #(events/dispatch-radio-selected :prepare)}]
+                :on-change #(println "TODO " :prepare)}]
        [:label {:class "lh-copy" :for :prepare} "prepare"
         [:span "00:10"]]]
       
