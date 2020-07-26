@@ -73,31 +73,87 @@
    [repetitions-input]])
 
 (defn main-panel []
-    [:div
-     (let [name (re-frame/subscribe [::subs/name])]
-       [:h1 "Hello from " @name "!"])
-
+  [:div
+   
+   (let [name (re-frame/subscribe [::subs/name])]
+     [:h1 "Hello from " @name "!"])
+   
      ;; only show input when stopped or completed
-     (let [stopped-or-completed  @(re-frame/subscribe [::subs/stopped-or-completed])]
-       (when stopped-or-completed
-         [tabata-input]))
+   (let [stopped-or-completed  @(re-frame/subscribe [::subs/stopped-or-completed])]
+     (when stopped-or-completed
+       [tabata-input]))
      
-     ;;TODO start button enabled only if it's not started
-     (let [duration (re-frame/subscribe [::subs/duration])
-           duration-rest (re-frame/subscribe [::subs/duration-rest])
-           repetitions (re-frame/subscribe [::subs/repetitions])]
-       [start-button @duration @duration-rest @repetitions])
+   ;;TODO start button enabled only if it's not started
+   (let [duration (re-frame/subscribe [::subs/duration])
+         duration-rest (re-frame/subscribe [::subs/duration-rest])
+         repetitions (re-frame/subscribe [::subs/repetitions])]
+     [start-button @duration @duration-rest @repetitions])
+   
+   ;; stop and pause buttons enabled only if it's started
+   (let [disabled (not @(re-frame/subscribe [::subs/started]))]
+     [:span
+      [stop-button disabled]
+      [pause-button disabled]])
+   
+   (let [disabled (not @(re-frame/subscribe [::subs/paused]))]
+     [resume-button disabled])
+   
+   ;; TODO only show when started or paused
+   [duration]
+   [repetitions]
+   
 
-     ;; stop and pause buttons enabled only if it's started
-     (let [disabled (not @(re-frame/subscribe [::subs/started]))]
-       [:span
-        [stop-button disabled]
-        [pause-button disabled]])
+   [:div {:class "helvetica tc f3"} "setup layout"
+    [:form {:class "pa4 black-80"}
      
-     (let [disabled (not @(re-frame/subscribe [::subs/paused]))]
-       [resume-button disabled])
-
-     ;; TODO only show when started or paused
-     [duration]
-     [repetitions]])
+     [:fieldset {:class "bn"}
+      [:div {:class "flex items-center mb2"}
+       
+       ;;TODO selecting a radio changes a db state
+       [:input {:class "mr2" :type "radio" :name "v"
+                :id :prepare :value "prepare"
+                :on-change #(events/dispatch-radio-selected :prepare)}]
+       [:label {:class "lh-copy" :for :prepare} "prepare"
+        [:span "00:10"]]]
+      
+      [:div {:class "flex items-center mb2"}
+       [:input {:class "mr2" :type "radio" :name "v"
+                :id :work :value "val"
+                :on-change #(events/dispatch-radio-selected :work)}]
+       [:label {:class "lh-copy" :for :work} "work"
+        [:span "00:45"]]]
+      
+      [:div {:class "flex items-center mb2"}
+       [:input {:class "mr2" :type "radio" :name "v"
+                :id :rest :value "val"
+                :on-change #(events/dispatch-radio-selected :rest)}]
+       [:label {:class "lh-copy" :for :rest} "rest"
+        [:span "00:25"]]]
+      
+      [:div {:class "flex items-center mb2"}
+       [:input {:class "mr2" :type "radio" :name "v"
+                :id :repetitions :value "val"
+                :on-change #(events/dispatch-radio-selected :repetitions)}]
+       [:label {:class "lh-copy" :for :repetitions} "reps"
+        (let [repetitions (re-frame/subscribe [::subs/repetitions])]
+          [:span @repetitions])]]]
+     
+     [:div
+      [:input {:type "button" :value "-"
+               :on-click #(events/dispatch-amount-changed dec)}]
+      [:input {:type "button" :value "+"
+               :on-click #(events/dispatch-amount-changed inc)}]]
+     
+     [:div
+      [:input {:type "button" :value "Start!"}]]]]
+   
+   [:div {:class "helvetica tc f3"} "work layout"
+    [:div {:class "f2"} "work"]
+    [:div {:class "b f-subheadline"} "00:23"]
+    [:div "time left: 5:23"]
+    [:div {:class "f3"} "reps left: 7 of 8"]
+    [:input {:type "button" :value "pause" :class "f3"}]
+    ]
+   
+   ])
 

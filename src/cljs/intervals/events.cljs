@@ -3,23 +3,15 @@
    [re-frame.core :as re-frame]
    [intervals.db :as db]
    [intervals.timer :as timer]
-   [intervals.tabata :as tabata]))
+   [intervals.tabata :as tabata]
+   [intervals.utils :as utils]))
+
+(def interval-millis 500)
 
 (re-frame/reg-event-db
  ::initialize-db
  (fn [_ _]
    db/default-db))
-
-;; js functions wrappers
-(defn clear-interval
-  [interval-id]
-  (js/clearInterval interval-id))
-
-;; TODO use https://github.com/daveyarwood/chronoid
-(defn set-interval
-  [f millis]
-  ;;TODO get and use also other params
-  (js/setInterval f millis))
 
 ;; ~ service methods
 ;; timer events
@@ -29,7 +21,7 @@
    (if (timer/expired? (db :timer))
      (do
        (println "timer duration expired")
-       (clear-interval (timer/interval-id (db :timer)))
+       (utils/clear-interval (timer/interval-id (db :timer)))
        (assoc db :timer (timer/complete (db :timer))))
      (assoc db :timer (timer/decrement (db :timer))))))
 
@@ -58,15 +50,14 @@
    (if (timer/started? (db :timer))
      db
      (if (timer/paused? (db :timer))
-       (let [interval-id (set-interval (fn [] (re-frame/dispatch [:second])) 1000)]
+       (let [interval-id (utils/set-interval (fn [] (re-frame/dispatch [:second])) interval-millis)]
          (assoc db :timer (timer/resume (db :timer) interval-id)))
-       (let [interval-id (set-interval (fn [] (re-frame/dispatch [:second])) 1000)]
+       (let [interval-id (utils/set-interval (fn [] (re-frame/dispatch [:second])) interval-millis)]
          (assoc db :timer (timer/start (db :timer)
                                        {:initial-duration duration
                                         :initial-duration-off duration-rest
                                         :repetitions repetitions
                                         :interval-id interval-id})))))))
-
 
 (re-frame/reg-event-db
  :resume-timer
@@ -74,7 +65,7 @@
    (if (timer/started? (db :timer))
      db
      (if (timer/paused? (db :timer))
-       (let [interval-id (set-interval (fn [] (re-frame/dispatch [:second])) 1000)]
+       (let [interval-id (utils/set-interval (fn [] (re-frame/dispatch [:second])) interval-millis)]
          (assoc db :timer (timer/resume (db :timer) interval-id)))
        db))))
 
@@ -83,7 +74,7 @@
  (fn [db [_]]
    (if (timer/started? (db :timer))
      (do
-       (clear-interval (timer/interval-id (db :timer)))
+       (utils/clear-interval (timer/interval-id (db :timer)))
        (assoc db :timer (timer/stop (db :timer))))
      db)))
 
@@ -92,9 +83,28 @@
  (fn [db [_]]
    (if (timer/started? (db :timer))
      (do
-       (clear-interval (timer/interval-id (db :timer)))
+       (utils/clear-interval (timer/interval-id (db :timer)))
        (assoc db :timer (timer/pause (db :timer))))
      db)))
+
+;; TODO wrap behind the tabata form APIs
+(re-frame/reg-event-db
+ :radio-selected
+ (fn [db [_ id]]
+   (assoc db :tabata-form (tabata/select (db :tabata-form) id))))
+
+(defn id->event
+  [id]
+  ({:work :duration-change
+    :rest :duration-rest-change
+    :repetitions :repetition-change} id))
+
+(re-frame/reg-event-fx
+ :amount-changed
+ (fn [{:keys [db]} [_ op]]
+   {:db db
+    :dispatch [(id->event (tabata/radio-selected (db :tabata-form))) op]
+    }))
 
 ;; event dispatchers (commands from ui)
 ;; form commands
@@ -109,6 +119,14 @@
 (defn dispatch-repetition-change
   [op]
   (re-frame/dispatch [:repetition-change op]))
+
+(defn dispatch-radio-selected
+  [id]
+  (re-frame/dispatch [:radio-selected id]))
+
+(defn dispatch-amount-changed
+  [op]
+  (re-frame/dispatch [:amount-changed op]))
 
 ;; timer commands
 (defn dispatch-start-timer

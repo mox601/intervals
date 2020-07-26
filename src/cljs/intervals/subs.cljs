@@ -53,4 +53,3 @@
  (fn [db]
    (timer/stopped-or-completed? (db :timer))))
 
-
