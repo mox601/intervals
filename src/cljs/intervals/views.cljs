@@ -84,8 +84,8 @@
 (defn main-panel []
   [:div
    
-   (let [name (re-frame/subscribe [::subs/name])]
-     [:h1 "Hello from " @name "!"])
+   (let [name @(re-frame/subscribe [::subs/name])]
+     [:h1 "Hello from " name "!"])
    
      ;; only show input when stopped or completed
    (let [stopped-or-completed  @(re-frame/subscribe [::subs/stopped-or-completed])]
@@ -93,10 +93,10 @@
        [tabata-input]))
      
    ;;TODO start button enabled only if it's not started
-   (let [duration (re-frame/subscribe [::subs/duration])
-         duration-rest (re-frame/subscribe [::subs/duration-rest])
-         repetitions (re-frame/subscribe [::subs/repetitions])]
-     [start-button @duration @duration-rest @repetitions])
+   (let [duration      @(re-frame/subscribe [::subs/duration])
+         duration-rest @(re-frame/subscribe [::subs/duration-rest])
+         repetitions   @(re-frame/subscribe [::subs/repetitions])]
+     [start-button duration duration-rest repetitions])
    
    ;; stop and pause buttons enabled only if it's started
    (let [disabled (not @(re-frame/subscribe [::subs/started]))]
@@ -110,7 +110,6 @@
    ;; TODO only show when started or paused
    [duration]
    [repetitions]
-   
 
    ;;setup layout
    [:div {:class "helvetica tc f3"} "setup layout"
@@ -130,24 +129,24 @@
                 :id :work :value "val"
                 :on-change #(events/dispatch-radio-selected :work)}]
        [:label {:class "lh-copy" :for :work} "work "
-        (let [duration (re-frame/subscribe [::subs/duration])]
-          [:span (secs->str @duration)])]]
+        (let [duration @(re-frame/subscribe [::subs/duration])]
+          [:span (secs->str duration)])]]
       
       [:div {:class "items-center mb2"}
        [:input {:class "mr2" :type "radio" :name "v"
                 :id :rest :value "val"
                 :on-change #(events/dispatch-radio-selected :rest)}]
        [:label {:class "lh-copy" :for :rest} "rest "
-        (let [duration (re-frame/subscribe [::subs/duration-rest])]
-        [:span (secs->str @duration)])]]
+        (let [duration @(re-frame/subscribe [::subs/duration-rest])]
+        [:span (secs->str duration)])]]
       
       [:div {:class "items-center mb2"}
        [:input {:class "mr2" :type "radio" :name "v"
                 :id :repetitions :value "val"
                 :on-change #(events/dispatch-radio-selected :repetitions)}]
        [:label {:class "lh-copy" :for :repetitions} "reps "
-        (let [repetitions (re-frame/subscribe [::subs/repetitions])]
-          [:span @repetitions])]]]
+        (let [repetitions @(re-frame/subscribe [::subs/repetitions])]
+          [:span repetitions])]]]
      
      [:div
       [:input {:type "button" :value "-"
