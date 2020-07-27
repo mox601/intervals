@@ -7,14 +7,11 @@
    [intervals.events :as events]))
 
 (defn secs->str
+  "seconds to a mm:ss string representation"
   [i]
-  (if (>= i 60)
-    (str (gstring/format "%02d" (quot i 60))
-         ":"
-         (gstring/format "%02d" (mod i 60)))
-    (str "00"
-         ":"
-         (gstring/format "%02d" i))))
+  (str (gstring/format "%02d" (quot i 60))
+       ":"
+       (gstring/format "%02d" (mod i 60))))
 
 (defn duration []
   (let [remaining-duration (re-frame/subscribe [::subs/remaining-duration])]
