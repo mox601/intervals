@@ -54,7 +54,6 @@
      [:input {:type "button" :value "-"
               :on-click #(events/dispatch-duration-change-event dec)}]]))
 
-
 (defn rest-duration
   []
   ;;duration rest
@@ -113,38 +112,40 @@
    [repetitions]
    
 
+   ;;setup layout
    [:div {:class "helvetica tc f3"} "setup layout"
     [:form {:class "pa4 black-80"}
      
      [:fieldset {:class "bn"}
-      [:div {:class "flex items-center mb2"}
-       
+      
+      [:div {:class "items-center mb2"}       
        ;;TODO selecting a radio changes a db state
        [:input {:class "mr2" :type "radio" :name "v"
                 :id :prepare :value "prepare"
                 :on-change #(println "TODO " :prepare)}]
-       [:label {:class "lh-copy" :for :prepare} "prepare"
-        [:span "00:10"]]]
+       [:label {:class "lh-copy" :for :prepare} "prepare " [:span "00:10"]]]
       
-      [:div {:class "flex items-center mb2"}
+      [:div {:class "items-center mb2"}
        [:input {:class "mr2" :type "radio" :name "v"
                 :id :work :value "val"
                 :on-change #(events/dispatch-radio-selected :work)}]
-       [:label {:class "lh-copy" :for :work} "work"
-        [:span "00:45"]]]
+       [:label {:class "lh-copy" :for :work} "work "
+        (let [duration (re-frame/subscribe [::subs/duration])]
+          [:span (secs->str @duration)])]]
       
-      [:div {:class "flex items-center mb2"}
+      [:div {:class "items-center mb2"}
        [:input {:class "mr2" :type "radio" :name "v"
                 :id :rest :value "val"
                 :on-change #(events/dispatch-radio-selected :rest)}]
-       [:label {:class "lh-copy" :for :rest} "rest"
-        [:span "00:25"]]]
+       [:label {:class "lh-copy" :for :rest} "rest "
+        (let [duration (re-frame/subscribe [::subs/duration-rest])]
+        [:span (secs->str @duration)])]]
       
-      [:div {:class "flex items-center mb2"}
+      [:div {:class "items-center mb2"}
        [:input {:class "mr2" :type "radio" :name "v"
                 :id :repetitions :value "val"
                 :on-change #(events/dispatch-radio-selected :repetitions)}]
-       [:label {:class "lh-copy" :for :repetitions} "reps"
+       [:label {:class "lh-copy" :for :repetitions} "reps "
         (let [repetitions (re-frame/subscribe [::subs/repetitions])]
           [:span @repetitions])]]]
      
@@ -156,7 +157,8 @@
      
      [:div
       [:input {:type "button" :value "Start!"}]]]]
-   
+
+   ;;work layout
    [:div {:class "helvetica tc f3"} "work layout"
     [:div {:class "f2"} "work"]
     [:div {:class "b f-subheadline"} "00:23"]
