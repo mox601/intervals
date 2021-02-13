@@ -13,6 +13,11 @@
 
 ;; form state
 (re-frame/reg-sub
+ ::prepare
+ (fn [db]
+   (tabata/prepare (db :tabata-form))))
+
+(re-frame/reg-sub
  ::duration
  (fn [db]
    (tabata/duration (db :tabata-form))))
@@ -34,6 +39,17 @@
    (timer/duration (db :timer))))
 
 (re-frame/reg-sub
+ ::time-type
+ (fn [db]
+   (timer/time-type (db :timer))))
+
+;; timer remaining duration
+(re-frame/reg-sub
+ ::time-left
+ (fn [db]
+   (timer/remaining-duration (db :timer))))
+
+(re-frame/reg-sub
  ::remaining-repetitions
  (fn [db]
    (timer/repetitions (db :timer))))
@@ -42,6 +58,12 @@
  ::started
  (fn [db]
    (timer/started? (db :timer))))
+
+;;TODO review if can substitute some views subscribing to started
+(re-frame/reg-sub
+ ::running
+ (fn [db]
+   (timer/running? (db :timer))))
 
 (re-frame/reg-sub
  ::paused
@@ -52,4 +74,10 @@
  ::stopped-or-completed
  (fn [db]
    (timer/stopped-or-completed? (db :timer))))
+
+(re-frame/reg-sub
+ ::initial-repetitions
+ (fn [db]
+   (timer/initial-repetitions (db :timer))))
+
 

@@ -3,10 +3,15 @@
 ;;TODO add selected radio and prepare value
 (defn init
   []
-  {:duration 3
+  {:prepare 1
+   :duration 3
    :duration-rest 2
    :repetitions 1
    :radio-selected :prepare})
+
+(defn prepare
+  [m]
+  (m :prepare))
 
 (defn duration
   [m]
@@ -43,4 +48,8 @@
 (defn repetition-change
   [m op]
   (assoc m :repetitions (op (:repetitions m))))
+
+(defn prepare-change
+  [m op]
+  (assoc m :prepare (op (:prepare m))))
 

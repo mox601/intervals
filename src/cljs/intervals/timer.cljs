@@ -1,19 +1,26 @@
 (ns intervals.timer)
 
 ;; TODO throw if command can't be applied to state
+;; https://cognitect.com/blog/2017/5/22/restate-your-ui-using-state-machines-to-simplify-user-interface-development make a map with the FSM transitions allowed use fsmviz to print graph
 
 ;; queries
 (defn interval-id
   [m]
   (m :interval-id))
 
+;;TODO
 (defn duration
   [m]
   (m :duration))
 
 (defn repetitions
   [m]
-  (m :repetitions))
+  (- (count (m :plan))
+     (m :plan-index)))
+
+(defn initial-repetitions
+  [m]
+  (count (m :plan)))
 
 (defn started?
   [m]
@@ -23,30 +30,38 @@
   [m]
   (= :paused (m :status)))
 
+(defn running?
+  [m]
+  (or (started? m)
+      (paused?  m)))
+
 (defn stopped-or-completed?
   [m]
   (or
-   (= :stopped  (m :status))
+   (= :stopped   (m :status))
    (= :completed (m :status))))
 
-(defn- work-time?
+;;TODO use a sub to show the current time type in the UI
+(defn time-type
   [m]
-  (= :work (m :type)))
+  ((m :current-step) :type))
 
-(defn- prepare-time?
+(defn more-steps?
   [m]
-  (= :prepare (m :type)))
-
-(defn more-repetitions?
-  [m]
-   (> (repetitions m) 1))
+  (> (count (m :plan))
+     (inc   (m :plan-index))))
 
 (defn expired?
   [m]
   (and
-   (not (more-repetitions? m))
-   (<= (duration m)  0)
-   (not (prepare-time? m))))
+   (not (more-steps? m))
+   (<=  (m :duration)  0)))
+
+;;TODO calculate remaining time
+(defn remaining-duration
+  [m]
+  (println m)
+  0)
 
 ;; TODO
 ;; from https://www.tabatatimer.com/
@@ -62,51 +77,55 @@
   []
   {
    :duration 0
-   ;;TODO keep track if duration is on or off
-   :initial-duration 0
-   :initial-duration-off 0
-   :type nil
    :status :stopped
-   :repetitions 1
-   :interval-id nil})
+   :interval-id nil
+   :plan nil
+   :plan-index -1
+   :current-step nil})
+
+;; plan as data
+  ;;TODO do we want to rest even when there's 1 repetition?
+(defn plan
+  [start-command]
+  (let [{duration :initial-duration
+         initial-duration-off :initial-duration-off
+         repetitions :repetitions} start-command]
+    ;; {:type :prepare
+    ;;  :amount 2} ...
+    ;;TODO clean up
+    (if (< 1 repetitions)
+      (vec (flatten (vec [{:type :prepare :amount 2}
+                          (first (repeat (dec repetitions)
+                                         [{:type :work :amount duration}
+                                          {:type :rest :amount initial-duration-off}]))
+                          {:type :work :amount duration}])))
+      (vec [{:type :prepare :amount 2}
+            {:type :work :amount duration}]))))
 
 ;; destructure an input map instead of getting an array
 ;;TODO spec the start-command
 (defn start
   [m start-command]
   ;;TODO only a stopped/completed timer can be started
-  (let [{duration :initial-duration
-         initial-duration-off :initial-duration-off
-         repetitions :repetitions
-         interval-id :interval-id} start-command]
+  (let [{interval-id :interval-id} start-command
+        plan (plan start-command)
+        first-step (first plan)]
     (assoc m
-           :duration 2
+           :duration (first-step :amount) ;; TODO make prepare time configurable
            ;; TODO refactor as work-rest
-           :initial-duration duration
-           :initial-duration-off initial-duration-off
-           :type :prepare
            :status :started
-           :repetitions repetitions
-           :interval-id interval-id)))
+           :interval-id interval-id
+           :plan plan
+           :plan-index 0
+           :current-step first-step)))
 
-(defn- next-repetition
+(defn- next-step
   [m]
-  (assoc m
-         :repetitions (dec (m :repetitions))
-         :duration (m :initial-duration)
-         :type :work))
-
-(defn- off-time
-  [m]
-  (assoc m
-         :duration (m :initial-duration-off)
-         :type :rest))
-
-(defn- work-time
-  [m]
-  (assoc m
-         :duration (m :initial-duration)
-         :type :work))
+  (let [next-st (get (m :plan) (inc (m :plan-index)))]
+    (assoc m
+           :duration (next-st :amount)
+           :plan-index (inc (m :plan-index))
+           :current-step next-st)))
 
 (defn- dec-duration
   [m]
@@ -115,17 +134,11 @@
 
 (defn decrement
   [m]
-  ;;TODO only a >= 0 counter and >= 0 repetitions can be decremented
-  ;;TODO do we want to rest even when there's 1 repetition?
   (if (> (m :duration) 0)
     (dec-duration m)
-    (if (prepare-time? m)
-      (work-time m)
-      (if (work-time? m)
-        (off-time m)
-        (if (more-repetitions? m)
-          (next-repetition m)
-          m)))))
+    (if (more-steps? m)
+      (next-step m)
+      m)))
 
 (defn stop
   [m]

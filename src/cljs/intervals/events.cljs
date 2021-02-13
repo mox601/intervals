@@ -14,18 +14,13 @@
    db/default-db))
 
 ;; ~ service methods
-;; timer events
-(re-frame/reg-event-db
- :second
- (fn [db [_]]
-   (if (timer/expired? (db :timer))
-     (do
-       (println "timer duration expired")
-       (utils/clear-interval (timer/interval-id (db :timer)))
-       (assoc db :timer (timer/complete (db :timer))))
-     (assoc db :timer (timer/decrement (db :timer))))))
 
 ;;form events
+(re-frame/reg-event-db               
+ :prepare-change
+ (fn [db [_ op]]
+  (assoc db :tabata-form (tabata/prepare-change (db :tabata-form) op))))
+
 (re-frame/reg-event-db               
  :duration-change
  (fn [db [_ op]]
@@ -42,13 +37,23 @@
    (assoc db :tabata-form (tabata/repetition-change (db :tabata-form) op))))
 
 ;; timer events
+(re-frame/reg-event-db
+ :second
+ (fn [db [_]]
+   (if (timer/expired? (db :timer))
+     (do
+       (println "timer duration expired")
+       (utils/clear-interval (timer/interval-id (db :timer)))
+       (assoc db :timer (timer/complete (db :timer))))
+     (assoc db :timer (timer/decrement (db :timer))))))
+
 ;; start (or resume)
-;; TODO split start and resume
+;; TODO split start and resume. is it split yet?
 (re-frame/reg-event-db
  :start-timer
  (fn [db [_ duration duration-rest repetitions]]
    (if (timer/started? (db :timer))
-     db
+     db ;;nop
      (if (timer/paused? (db :timer))
        (let [interval-id (utils/set-interval (fn [] (re-frame/dispatch [:second])) interval-millis)]
          (assoc db :timer (timer/resume (db :timer) interval-id)))
@@ -95,7 +100,8 @@
 
 (defn id->event
   [id]
-  ({:work :duration-change
+  ({:prepare :prepare-change
+    :work :duration-change
     :rest :duration-rest-change
     :repetitions :repetition-change} id))
 
@@ -107,6 +113,7 @@
     }))
 
 ;; event dispatchers (commands from ui)
+
 ;; form commands
 (defn dispatch-duration-change-event
   [op]
